@@ -32,7 +32,7 @@ def AES(numBytes):
         ct = encryptor.update(message) + encryptor.finalize()
 
         end = time.time()
-        encTime.append(end-start)
+        encTime.append((end-start)*1000000)
 
         # Decrypt
         start = time.time()
@@ -44,7 +44,7 @@ def AES(numBytes):
         pt = decryptor.update(ct) + decryptor.finalize()
 
         end = time.time()
-        decTime.append(end-start)
+        decTime.append((end-start)*1000000)
 
     return (encTime, decTime)
 
@@ -61,7 +61,7 @@ def SHA256(numBytes):
         digest.finalize()
 
         end = time.time()
-        encTime.append(end-start)
+        encTime.append((end-start)*1000000)
 
     return (encTime, decTime)
 
@@ -90,7 +90,7 @@ def RSA(numBytes):
         )
 
         end = time.time()
-        encTime.append(end-start)
+        encTime.append((end-start)*1000000)
 
         # Decrypt
         start = time.time()
@@ -105,7 +105,7 @@ def RSA(numBytes):
         )
 
         end = time.time()
-        decTime.append(end-start)
+        decTime.append((end-start)*1000000)
 
     return (encTime, decTime)
 
@@ -134,7 +134,7 @@ def GenerateContent(numBytes):
     return content
 
 
-l = [128, 128]
+l = [2, 2, 4, 8, 16, 32, 64, 128]
 for i in l:
     encTime, decTime = RSA(i)
     PrintConfidenceLevel(i, encTime, decTime)
