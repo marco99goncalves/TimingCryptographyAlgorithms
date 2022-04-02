@@ -1,64 +1,8 @@
--------------- 2 bytes --------------
-Intervalo de confiança a 95% para tempo de encriptação: 
-	109.05265808105469 +- 5.982613449472859
-
-Intervalo de confiança a 95% para tempo de desencriptação: 
-	545.7878112792969 +- 21.81525309823422
-----------------------------------------
-
--------------- 2 bytes --------------
-Intervalo de confiança a 95% para tempo de encriptação: 
-	112.39051818847656 +- 12.071772625659195
-
-Intervalo de confiança a 95% para tempo de desencriptação: 
-	577.0683288574219 +- 50.70440779302604
-----------------------------------------
-
--------------- 4 bytes --------------
-Intervalo de confiança a 95% para tempo de encriptação: 
-	118.23177337646484 +- 10.724407082967234
-
-Intervalo de confiança a 95% para tempo de desencriptação: 
-	628.7336349487305 +- 103.53682567411182
-----------------------------------------
-
--------------- 8 bytes --------------
-Intervalo de confiança a 95% para tempo de encriptação: 
-	118.92318725585938 +- 13.152792583470783
-
-Intervalo de confiança a 95% para tempo de desencriptação: 
-	553.9894104003906 +- 30.131290153224285
-----------------------------------------
-
--------------- 16 bytes --------------
-Intervalo de confiança a 95% para tempo de encriptação: 
-	113.4634017944336 +- 19.74226180614639
-
-Intervalo de confiança a 95% para tempo de desencriptação: 
-	553.7748336791992 +- 22.653425705875964
-----------------------------------------
-
--------------- 32 bytes --------------
-Intervalo de confiança a 95% para tempo de encriptação: 
-	106.31084442138672 +- 6.250813394766808
-
-Intervalo de confiança a 95% para tempo de desencriptação: 
-	535.6788635253906 +- 16.443636960199385
-----------------------------------------
-
--------------- 64 bytes --------------
-Intervalo de confiança a 95% para tempo de encriptação: 
-	109.60102081298828 +- 10.910448990952252
-
-Intervalo de confiança a 95% para tempo de desencriptação: 
-	609.7078323364258 +- 98.09422788531978
-----------------------------------------
-
--------------- 128 bytes --------------
-Intervalo de confiança a 95% para tempo de encriptação: 
-	110.67390441894531 +- 8.162335158964032
-
-Intervalo de confiança a 95% para tempo de desencriptação: 
-	551.3906478881836 +- 25.387795486149777
-----------------------------------------
-
+110.626220703125 14.746863897885197
+102.71072387695312 8.90640756498787
+97.77545928955078 10.058460970554572
+105.1187515258789 8.479268723037073
+104.02202606201172 3.3872350444450885
+111.29379272460938 13.941819974802112
+110.0778579711914 15.13087426651437
+105.64327239990234 8.719492667768064
