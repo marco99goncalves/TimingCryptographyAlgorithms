@@ -12,7 +12,7 @@ from statistics import mean
 from math import sqrt
 
 
-NUMBER_OF_FILES = 10
+NUMBER_OF_FILES = 1000*2
 
 
 def AES(numBytes):
@@ -111,21 +111,21 @@ def RSA(numBytes):
 
 
 def PrintConfidenceLevel(numBytes, encTime, decTime):
-    # Intervalo de confiança para encriptação
-    sd = std(encTime)
-    conf_level = 1.96 * (sd/sqrt(NUMBER_OF_FILES))
-    print("-------------- " + str(numBytes) + " bytes --------------")
-    print("Intervalo de confiança a 95% para tempo de encriptação: \n\t" +
-          str(mean(encTime)) + " +- " + str(conf_level))
+    #Dados para encriptação
 
-    if(len(decTime) > 0):
-        # Intervalo de confiança para desencriptação
-        sd = std(decTime)
-        conf_level = 1.96 * (sd/sqrt(NUMBER_OF_FILES))
-        print("\nIntervalo de confiança a 95% para tempo de desencriptação: \n\t" +
-              str(mean(decTime)) + " +- " + str(conf_level))
-        print("----------------------------------------\n")
+    outlier_offset = 10
+    # encTime = encTime[:-outlier_offset]
 
+    encTime = encTime[-(int(NUMBER_OF_FILES/2)):]
+    encTime.sort()
+
+
+    res = ""
+    res += ("B" + str(numBytes) + " = c(\n")
+    for i in range(0, len(encTime)-1):
+        res += (str(encTime[i]) + ", \n")
+    res += (str(encTime[len(encTime)-1]) + "), \n")
+    return res
 
 def GenerateContent(numBytes):
     content = ""
@@ -134,7 +134,19 @@ def GenerateContent(numBytes):
     return content
 
 
-l = [2, 2, 4, 8, 16, 32, 64, 128]
+l = [8, 64, 512, 4096, 32768, 262144, 2047152]#AES/SHA
+#l = [2, 4, 8, 16, 32, 64, 128]#RSA
+
+res = "data <- data.frame(\n"
 for i in l:
-    encTime, decTime = RSA(i)
-    PrintConfidenceLevel(i, encTime, decTime)
+    encTime, decTime = AES(i)
+    res += PrintConfidenceLevel(i, encTime, decTime)
+res = res[:-3]
+res+= ")\n"
+res += "head(data)\n"
+res += "boxplot(data, names=c("
+for i in l:
+    res += "\"" + str(i) + "\", "
+res = res[:-2]
+res += "), outline=FALSE)"
+print(res)
