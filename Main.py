@@ -2,17 +2,18 @@ from os import urandom
 import random
 import time
 import string
+import matplotlib.pyplot as plt
 from binascii import hexlify
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.hazmat.primitives.asymmetric import padding
-from numpy import std
-from statistics import mean
+from numpy import std, percentile
+from statistics import mean, median
 from math import sqrt
 
 
-NUMBER_OF_FILES = 1000*2
+NUMBER_OF_FILES = 100*2
 
 
 def AES(numBytes):
@@ -113,19 +114,33 @@ def RSA(numBytes):
 def PrintConfidenceLevel(numBytes, encTime, decTime):
     #Dados para encriptação
 
-    outlier_offset = 10
-    # encTime = encTime[:-outlier_offset]
-
     encTime = encTime[-(int(NUMBER_OF_FILES/2)):]
     encTime.sort()
+    q3, q1 = percentile(encTime, [75, 25])
+    iqr = q3 - q1
+    print(str(median(encTime)) + " " + str(iqr))
 
+def SimplePlot(x, y, y_err):
+    plt.errorbar(x, y, y_err, marker="o", label="AES")
+    plt.xscale('log', base=2)
+    plt.xticks(x, labels=x)
+    plt.ylabel("Time (Microseconds)")
+    plt.xlabel("Plaintext size (Bytes)")
 
-    res = ""
-    res += ("B" + str(numBytes) + " = c(\n")
-    for i in range(0, len(encTime)-1):
-        res += (str(encTime[i]) + ", \n")
-    res += (str(encTime[len(encTime)-1]) + "), \n")
-    return res
+    plt.title("AES Times")
+    plt.legend()
+
+    for xs,ys in zip(x,y):
+
+        label = "{:.2f}".format(ys)
+
+        plt.annotate(label, # this is the text
+                    (xs,ys), # these are the coordinates to position the label
+                    textcoords="offset points", # how to position the text
+                    xytext=(0,10), # distance from text to points (x,y)
+                    ha='center') # horizontal alignment can be left, right or center
+
+    plt.savefig("test.svg")    
 
 def GenerateContent(numBytes):
     content = ""
@@ -134,19 +149,20 @@ def GenerateContent(numBytes):
     return content
 
 
-l = [8, 64, 512, 4096, 32768, 262144, 2047152]#AES/SHA
-#l = [2, 4, 8, 16, 32, 64, 128]#RSA
+x = [8, 64, 512, 4096, 32768, 262144, 2047152]#AES/SHA
+#x = [2, 4, 8, 16, 32, 64, 128]#RSA
+yEnc = []
+y_err = []
 
-res = "data <- data.frame(\n"
-for i in l:
+yDec = []
+for i in x:
     encTime, decTime = AES(i)
-    res += PrintConfidenceLevel(i, encTime, decTime)
-res = res[:-3]
-res+= ")\n"
-res += "head(data)\n"
-res += "boxplot(data, names=c("
-for i in l:
-    res += "\"" + str(i) + "\", "
-res = res[:-2]
-res += "), outline=FALSE)"
-print(res)
+    encTime = encTime[-(int(NUMBER_OF_FILES/2)):]
+    encTime.sort()
+    q3, q1 = percentile(encTime, [75, 25])
+    iqr = q3 - q1
+    yEnc.append(median(encTime))
+    y_err.append(iqr)
+
+#PrintConfidenceLevel(i, encTime, decTime)
+SimplePlot(x, yEnc, y_err)
