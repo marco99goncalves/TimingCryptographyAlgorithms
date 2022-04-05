@@ -188,8 +188,8 @@ def GenerateContent(numBytes):
     return content
 
 
-# x = [8, 64, 512, 4096, 32768, 262144, 2047152]#AES/SHA
-x = [2, 4, 8, 16, 32, 64, 128]  # RSA
+x = [8, 64, 512, 4096, 32768, 262144, 2047152]#AES/SHA
+#x = [2, 4, 8, 16, 32, 64, 128]  # RSA
 y_enc = []
 y_enc_err = []
 
@@ -198,7 +198,7 @@ y_dec_err = []
 
 
 for i in x:
-    encTime, decTime = RSA(i)
+    encTime, decTime = AES(i)
     encTime = encTime[-OFFSET:]
     q3, q1 = percentile(encTime, [75, 25])
     encTime.sort()
