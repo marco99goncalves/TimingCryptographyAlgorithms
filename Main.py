@@ -1,4 +1,5 @@
 from os import urandom
+import sys
 import random
 import time
 import string
@@ -13,7 +14,7 @@ from statistics import mean, median
 from math import sqrt
 
 
-NUMBER_OF_FILES = 100*2
+NUMBER_OF_FILES = 1000+100
 
 
 def AES(numBytes):
@@ -94,19 +95,19 @@ def RSA(numBytes):
         encTime.append((end-start)*1000000)
 
         # Decrypt
-        start = time.time()
+        # start = time.time()
 
-        plaintext = private_key.decrypt(
-            ciphertext,
-            padding.OAEP(
-                mgf=padding.MGF1(algorithm=hashes.SHA256()),
-                algorithm=hashes.SHA256(),
-                label=None
-            )
-        )
+        # plaintext = private_key.decrypt(
+        #     ciphertext,
+        #     padding.OAEP(
+        #         mgf=padding.MGF1(algorithm=hashes.SHA256()),
+        #         algorithm=hashes.SHA256(),
+        #         label=None
+        #     )
+        # )
 
-        end = time.time()
-        decTime.append((end-start)*1000000)
+        # end = time.time()
+        # decTime.append((end-start)*1000000)
 
     return (encTime, decTime)
 
@@ -120,14 +121,14 @@ def PrintConfidenceLevel(numBytes, encTime, decTime):
     iqr = q3 - q1
     print(str(median(encTime)) + " " + str(iqr))
 
-def SimplePlot(x, y, y_err):
+def SimplePlot(x, y, y_err, file_name, label):
     plt.errorbar(x, y, y_err, marker="o", label="AES")
     plt.xscale('log', base=2)
     plt.xticks(x, labels=x)
     plt.ylabel("Time (Microseconds)")
     plt.xlabel("Plaintext size (Bytes)")
 
-    plt.title("AES Times")
+    plt.title(label + " Times")
     plt.legend()
 
     for xs,ys in zip(x,y):
@@ -140,7 +141,7 @@ def SimplePlot(x, y, y_err):
                     xytext=(0,10), # distance from text to points (x,y)
                     ha='center') # horizontal alignment can be left, right or center
 
-    plt.savefig("test.svg")    
+    plt.savefig(file_name)    
 
 def GenerateContent(numBytes):
     content = ""
@@ -149,15 +150,16 @@ def GenerateContent(numBytes):
     return content
 
 
-x = [8, 64, 512, 4096, 32768, 262144, 2047152]#AES/SHA
-#x = [2, 4, 8, 16, 32, 64, 128]#RSA
+#x = [8, 64, 512, 4096, 32768, 262144, 2047152]#AES/SHA
+x = [2, 4, 8, 16, 32, 64, 128]#RSA
 yEnc = []
 y_err = []
 
 yDec = []
+
 for i in x:
-    encTime, decTime = AES(i)
-    encTime = encTime[-(int(NUMBER_OF_FILES/2)):]
+    encTime, decTime = RSA(i)
+    encTime = encTime[-100:]
     encTime.sort()
     q3, q1 = percentile(encTime, [75, 25])
     iqr = q3 - q1
@@ -165,4 +167,4 @@ for i in x:
     y_err.append(iqr)
 
 #PrintConfidenceLevel(i, encTime, decTime)
-SimplePlot(x, yEnc, y_err)
+SimplePlot(x, yEnc, y_err, sys.argv[1], sys.argv[2])
