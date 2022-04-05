@@ -13,8 +13,8 @@ from numpy import std, percentile
 from statistics import mean, median
 from math import sqrt
 
-
-NUMBER_OF_FILES = 1000+100
+OFFSET = 100
+NUMBER_OF_FILES = 1000+OFFSET
 
 
 def AES(numBytes):
@@ -95,25 +95,25 @@ def RSA(numBytes):
         encTime.append((end-start)*1000000)
 
         # Decrypt
-        # start = time.time()
+        start = time.time()
 
-        # plaintext = private_key.decrypt(
-        #     ciphertext,
-        #     padding.OAEP(
-        #         mgf=padding.MGF1(algorithm=hashes.SHA256()),
-        #         algorithm=hashes.SHA256(),
-        #         label=None
-        #     )
-        # )
+        plaintext = private_key.decrypt(
+            ciphertext,
+            padding.OAEP(
+                mgf=padding.MGF1(algorithm=hashes.SHA256()),
+                algorithm=hashes.SHA256(),
+                label=None
+            )
+        )
 
-        # end = time.time()
-        # decTime.append((end-start)*1000000)
+        end = time.time()
+        decTime.append((end-start)*1000000)
 
     return (encTime, decTime)
 
 
 def PrintConfidenceLevel(numBytes, encTime, decTime):
-    #Dados para encriptação
+    # Dados para encriptação
 
     encTime = encTime[-(int(NUMBER_OF_FILES/2)):]
     encTime.sort()
@@ -121,27 +121,65 @@ def PrintConfidenceLevel(numBytes, encTime, decTime):
     iqr = q3 - q1
     print(str(median(encTime)) + " " + str(iqr))
 
-def SimplePlot(x, y, y_err, file_name, label):
-    plt.errorbar(x, y, y_err, marker="o", label="AES")
+
+def SimplePlot(x, y, y_err, file_name, plot_label):
+    plt.errorbar(x, y, y_err, marker="o", label=plot_label + " Encryption")
     plt.xscale('log', base=2)
     plt.xticks(x, labels=x)
     plt.ylabel("Time (Microseconds)")
     plt.xlabel("Plaintext size (Bytes)")
 
-    plt.title(label + " Times")
+    plt.title(plot_label + " Times")
     plt.legend()
 
-    for xs,ys in zip(x,y):
+    for xs, ys in zip(x, y):
 
         label = "{:.2f}".format(ys)
 
-        plt.annotate(label, # this is the text
-                    (xs,ys), # these are the coordinates to position the label
-                    textcoords="offset points", # how to position the text
-                    xytext=(0,10), # distance from text to points (x,y)
-                    ha='center') # horizontal alignment can be left, right or center
+        plt.annotate(label,  # this is the text
+                     (xs, ys),  # these are the coordinates to position the label
+                     textcoords="offset points",  # how to position the text
+                     xytext=(0, 10),  # distance from text to points (x,y)
+                     ha='center')  # horizontal alignment can be left, right or center
 
-    plt.savefig(file_name)    
+    plt.savefig(file_name)
+
+
+def SimplePlotWithDec(x, y_enc, y_enc_err, y_dec, y_dec_err, file_name, plot_label):
+    plt.errorbar(x, y_enc, y_enc_err, marker="o",
+                 label=plot_label + " Encryption")
+    plt.errorbar(x, y_dec, y_dec_err, marker="o",
+                 label=plot_label + " Decryption")
+    plt.xscale('log', base=2)
+    plt.xticks(x, labels=x)
+    plt.ylabel("Time (Microseconds)")
+    plt.xlabel("Plaintext size (Bytes)")
+
+    plt.title(plot_label + " Times")
+    plt.legend(loc='center left', bbox_to_anchor=(1, 0.5))
+
+    for xs, ys in zip(x, y_enc):
+
+        label = "{:.2f}".format(ys)
+
+        plt.annotate(label,  # this is the text
+                     (xs, ys),  # these are the coordinates to position the label
+                     textcoords="offset points",  # how to position the text
+                     xytext=(0, 10),  # distance from text to points (x,y)
+                     ha='center')  # horizontal alignment can be left, right or center
+
+    for xs, ys in zip(x, y_dec):
+
+        label = "{:.2f}".format(ys)
+
+        plt.annotate(label,  # this is the text
+                     (xs, ys),  # these are the coordinates to position the label
+                     textcoords="offset points",  # how to position the text
+                     xytext=(0, 10),  # distance from text to points (x,y)
+                     ha='center')  # horizontal alignment can be left, right or center
+
+    plt.savefig(file_name, bbox_inches='tight')
+
 
 def GenerateContent(numBytes):
     content = ""
@@ -150,21 +188,31 @@ def GenerateContent(numBytes):
     return content
 
 
-#x = [8, 64, 512, 4096, 32768, 262144, 2047152]#AES/SHA
-x = [2, 4, 8, 16, 32, 64, 128]#RSA
-yEnc = []
-y_err = []
+# x = [8, 64, 512, 4096, 32768, 262144, 2047152]#AES/SHA
+x = [2, 4, 8, 16, 32, 64, 128]  # RSA
+y_enc = []
+y_enc_err = []
 
-yDec = []
+y_dec = []
+y_dec_err = []
+
 
 for i in x:
     encTime, decTime = RSA(i)
-    encTime = encTime[-100:]
-    encTime.sort()
+    encTime = encTime[-OFFSET:]
     q3, q1 = percentile(encTime, [75, 25])
-    iqr = q3 - q1
-    yEnc.append(median(encTime))
-    y_err.append(iqr)
+    encTime.sort()
+    iqr_enc = q3 - q1
+    y_enc.append(median(encTime))
+    y_enc_err.append(iqr_enc)
+
+    decTime = decTime[-OFFSET:]
+    q3, q1 = percentile(decTime, [75, 25])
+    decTime.sort()
+    iqr_dec = q3 - q1
+    y_dec.append(median(decTime))
+    y_dec_err.append(iqr_dec)
 
 #PrintConfidenceLevel(i, encTime, decTime)
-SimplePlot(x, yEnc, y_err, sys.argv[1], sys.argv[2])
+SimplePlotWithDec(x, y_enc, y_enc_err, y_dec,
+                  y_dec_err, sys.argv[1], sys.argv[2])
