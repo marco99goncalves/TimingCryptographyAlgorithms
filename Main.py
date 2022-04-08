@@ -13,17 +13,20 @@ from numpy import std, percentile
 from statistics import mean, median
 from math import sqrt
 
-OFFSET = 10
+OFFSET = 500
 NUMBER_OF_FILES = 1000+OFFSET
 
 
+"""Encrypts and decrypts a message of numBytes a given ammount of times, using the AES with CTR Mode algorithm
+:param numBytes: Size of the message to encrypt
+"""
 def AES(numBytes):
     encTime = []
     decTime = []
-    message = bytes(GenerateContent(numBytes), 'utf-8')
     for i in range(NUMBER_OF_FILES):
-
-        # Encrypt the content
+        message = bytes(GenerateContent(numBytes), 'utf-8')
+        
+        # Encryption code
         key = urandom(32)
         iv = urandom(16)
 
@@ -34,28 +37,31 @@ def AES(numBytes):
         ct = encryptor.update(message) + encryptor.finalize()
 
         end = timer()
-        encTime.append((end-start)*1000000)
+        encTime.append((end-start)*10**6)  # Convert to microseconds
 
-        #Decrypt
+        # Decryption code
         start = timer()
 
-        # Codigo de desencriptação
         plaintext = Cipher(algorithms.AES(key), modes.CTR(iv))
         decryptor = cipher.encryptor()
 
         pt = decryptor.update(ct) + decryptor.finalize()
 
         end = timer()
-        decTime.append((end-start)*1000000)
+        decTime.append((end-start)*10**6)  # Convert to microseconds
 
     return (encTime, decTime)
 
 
+"""Encrypts and decrypts a message of numBytes a given ammount of times, using the SHA-256 hashing algorithm
+:param numBytes: Size of the message to encrypt
+"""
 def SHA256(numBytes):
     encTime = []
     decTime = []
-    message = bytes(GenerateContent(numBytes), 'utf-8')
     for i in range(NUMBER_OF_FILES):
+        message = bytes(GenerateContent(numBytes), 'utf-8')
+        # Encryption code
         start = timer()
 
         digest = hashes.Hash(hashes.SHA256())
@@ -63,18 +69,21 @@ def SHA256(numBytes):
         digest.finalize()
 
         end = timer()
-        encTime.append((end-start)*1000000)
+        encTime.append((end-start)*10**6) # Convert to microseconds
 
     return (encTime, decTime)
 
-
+"""Encrypts and decrypts a message of numBytes a given ammount of times, using the RSA algorithm
+:param numBytes: Size of the message to encrypt
+"""
 def RSA(numBytes):
     encTime = []
     decTime = []
-    message = bytes(GenerateContent(numBytes), 'utf-8')
     for i in range(NUMBER_OF_FILES):
-        # Encrypt the content
+        message = bytes(GenerateContent(numBytes), 'utf-8')
+        # Encryption code
 
+        # Generate keys
         private_key = rsa.generate_private_key(
             public_exponent=65537,
             key_size=2048,
@@ -92,9 +101,9 @@ def RSA(numBytes):
         )
 
         end = timer()
-        encTime.append((end-start)*1000000)
+        encTime.append((end-start)*10**6)  # Convert to microseconds
 
-        # Decrypt
+        # Decryption code
         start = timer()
 
         plaintext = private_key.decrypt(
@@ -107,21 +116,18 @@ def RSA(numBytes):
         )
 
         end = timer()
-        decTime.append((end-start)*1000000)
+        decTime.append((end-start)*10**6)  # Convert to microseconds
 
     return (encTime, decTime)
 
-
-def PrintConfidenceLevel(numBytes, encTime, decTime):
-    # Dados para encriptação
-
-    encTime = encTime[-(int(NUMBER_OF_FILES/2)):]
-    encTime.sort()
-    q3, q1 = percentile(encTime, [75, 25])
-    iqr = q3 - q1
-    print(str(median(encTime)) + " " + str(iqr))
-
-
+"""Plots a simple graph
+:param x: X-Axis values
+:param y_enc: Y Values for a given X
+:param y_enc_err: Error associated with a given Y value
+:param file_name: Name of the file to save the plot
+:param plot_label: Title of the plot
+:param mode: Mode that is being tested, encryption or decryption
+"""
 def SimplePlot(x, y_enc, y_enc_err, file_name, plot_label, mode):
     plt.errorbar(x, y_enc, y_enc_err, marker="o",
                  label=plot_label + " " + mode, color='orange')
@@ -146,6 +152,15 @@ def SimplePlot(x, y_enc, y_enc_err, file_name, plot_label, mode):
     plt.savefig(file_name, bbox_inches='tight')
 
 
+"""Plots a simple graph with both encryption and decryption bars
+:param x: X-Axis values
+:param y_enc: Y encryption values for a given X
+:param y_enc_err: Error associated with a given Y encryption value
+:param y_dec: Y decryption values for a given X
+:param y_dec_err: Error associated with a given Y decryption value
+:param file_name: Name of the file to save the plot
+:param plot_label: Title of the plot
+"""
 def SimplePlotWithDec(x, y_enc, y_enc_err, y_dec, y_dec_err, file_name, plot_label):
     plt.errorbar(x, y_enc, y_enc_err, marker="o",
                  label=plot_label + " Encryption", color='orange')
@@ -181,7 +196,9 @@ def SimplePlotWithDec(x, y_enc, y_enc_err, y_dec, y_dec_err, file_name, plot_lab
 
     plt.savefig(file_name, bbox_inches='tight')
 
-
+"""Generates a random string of size numBytes
+:param numBytes: Size of the String to generate
+"""
 def GenerateContent(numBytes):
     content = ""
     for i in range(numBytes):
@@ -189,31 +206,30 @@ def GenerateContent(numBytes):
     return content
 
 
-#x = [8, 64, 512, 4096, 32768, 262144, 2047152]#AES/SHA
-x = [2, 4, 8, 16, 32, 64, 128]  # RSA
+x = [8, 64, 512, 4096, 32768, 262144, 2047152]  # AES/SHA
+# x = [2, 4, 8, 16, 32, 64, 128, 200]  # RSA
+
+
 y_enc = []
 y_enc_err = []
 
 y_dec = []
 y_dec_err = []
-
-
 for i in x:
-    encTime, decTime = RSA(i)
-    encTime = encTime[-OFFSET:]
+    encTime, decTime = AES(i)
+    encTime = encTime[OFFSET:]
     q3, q1 = percentile(encTime, [75, 25])
     encTime.sort()
     iqr_enc = q3 - q1
     y_enc.append(median(encTime))
     y_enc_err.append(iqr_enc)
 
-    decTime = decTime[-OFFSET:]
+    decTime = decTime[OFFSET:]
     q3, q1 = percentile(decTime, [75, 25])
     decTime.sort()
     iqr_dec = q3 - q1
     y_dec.append(median(decTime))
     y_dec_err.append(iqr_dec)
 
-#PrintConfidenceLevel(i, encTime, decTime)
-#SimplePlot(x, y_enc, y_enc_err, sys.argv[1], sys.argv[2], sys.argv[3])
-SimplePlotWithDec(x, y_enc, y_enc_err, y_dec, y_dec_err, sys.argv[1], sys.argv[2])
+SimplePlot(x, y_enc, y_enc_err, sys.argv[1], sys.argv[2], sys.argv[3])
+# SimplePlotWithDec(x, y_enc, y_enc_err, y_dec, y_dec_err, sys.argv[1], sys.argv[2])
